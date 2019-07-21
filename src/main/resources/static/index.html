@@ -1,0 +1,56 @@
+<html>
+<head>
+    <title>HTTP service that serves to shorten URLs</title>
+    <script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+    <script>
+        /* Function takes a jquery form
+        and converts it to a JSON dictionary */
+        function convertFormToJSON(form){
+        var array = $(form).serializeArray();
+        var json = {};
+
+        $.each(array, function() {
+        json[this.name] = this.value || '';
+        });
+
+        return json;
+        }
+
+        /* Adds a new form to the body of a page with the JSON data encoded into it */
+        function submitAsJSON(form) {
+            var JSONString = JSON.stringify(convertFormToJSON(form));
+            $.ajax({
+                url: $(form).attr('action'),
+                type: "POST",
+                contentType: "application/json; charset=utf-8",
+                data: JSONString, //Stringified Json Object
+                async: true,    //Cross-domain requests and dataType: "jsonp" requests do not support synchronous operation
+                cache: false,    //This will force requested pages not to be cached by the browser
+                processData:false, //To avoid making query String instead of JSON
+                success: function(resposeJsonObject){
+                    // Success Action
+                    alert(JSON.stringify(resposeJsonObject));
+                }
+            });
+
+        }
+
+        $(document).ready(function() {
+            $("form").submit(function(event) {
+                event.preventDefault();
+                submitAsJSON(this);
+            });
+        });
+
+    </script>
+</head>
+<body>
+
+<h1>HTTP service that serves to shorten URLs</h1>
+<form action='test' method='post' id='form'>
+    <input name='accountId' value='Bender'>
+    <input type='submit'>
+</form>
+
+</body>
+</html>
