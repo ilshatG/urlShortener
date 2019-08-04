@@ -1,56 +1,508 @@
+<!DOCTYPE HTML>
+<!--
+	Hyperspace by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
 <html>
-<head>
-    <title>HTTP service that serves to shorten URLs</title>
-    <script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
-    <script>
-        /* Function takes a jquery form
-        and converts it to a JSON dictionary */
-        function convertFormToJSON(form){
-        var array = $(form).serializeArray();
-        var json = {};
+	<head>
+		<title>Hyperspace by HTML5 UP</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<link rel="stylesheet" href="assets/css/main.css" />
+		<noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
+		<script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+		<script>
+            //window.localStorage.setItem('token', '');
 
-        $.each(array, function() {
-        json[this.name] = this.value || '';
-        });
+            /* Function takes a jquery form
+            and converts it to a JSON dictionary */
+            function convertFormToJSON(form){
+                var array = $(form).serializeArray();
+                var json = {};
 
-        return json;
-        }
+                $.each(array, function() {
+                    json[this.name] = this.value || '';
+                });
 
-        /* Adds a new form to the body of a page with the JSON data encoded into it */
-        function submitAsJSON(form) {
-            var JSONString = JSON.stringify(convertFormToJSON(form));
-            $.ajax({
-                url: $(form).attr('action'),
-                type: "POST",
-                contentType: "application/json; charset=utf-8",
-                data: JSONString, //Stringified Json Object
-                async: true,    //Cross-domain requests and dataType: "jsonp" requests do not support synchronous operation
-                cache: false,    //This will force requested pages not to be cached by the browser
-                processData:false, //To avoid making query String instead of JSON
-                success: function(resposeJsonObject){
-                    // Success Action
-                    alert(JSON.stringify(resposeJsonObject));
+                return json;
+            }
+
+            /* Adds a new form to the body of a page with the JSON data encoded into it */
+            function submitAsJSON(form) {
+                var JSONString = JSON.stringify(convertFormToJSON(form));
+                var authorization ='';
+                var result;
+                var leftToken = window.localStorage.getItem('token').substring(0, 6);
+                if (window.localStorage.getItem('token').substring(0, 6) === 'Bearer') {
+                    authorization = {"Authorization": window.localStorage.getItem('token')};
                 }
+                $.ajax({
+                    url: $(form).attr('action'),
+                    type: "POST",
+                    headers: authorization,
+                    contentType: "application/json; charset=utf-8",
+                    data: JSONString, //Stringified Json Object
+                    async: false,    //Cross-domain requests and dataType: "jsonp" requests do not support synchronous operation
+                    cache: false,    //This will force requested pages not to be cached by the browser
+                    processData:false, //To avoid making query String instead of JSON
+                    success: function(responseJsonObject){
+                        // Success Action
+                        /*alert(JSON.stringify(responseJsonObject));
+                        result = responseJsonObject;
+                        window.localStorage.setItem('response', responseJsonObject);*/
+                        if(typeof responseJsonObject['token'] !== "undefined") {
+                            window.localStorage.setItem('token', 'Bearer ' + responseJsonObject['token']);
+                        }
+                    },
+					complete: function(responseJsonObject) {
+                        // Success Action
+                        //alert(JSON.stringify(responseJsonObject));
+                        result = responseJsonObject;
+                        window.localStorage.setItem('response', responseJsonObject);
+                            //window.localStorage.setItem('token', '');
+                    }
+                });
+                return result;
+            }
+
+            $(document).ready(function() {
+                $('#shortUrlForm').submit(function(event) {
+                    event.preventDefault();
+                    var result;
+                    result = submitAsJSON(this);
+                    if (result['responseJSON']['success'] == true ) {
+                        $('#gottenShortUrl').val(result['responseJSON']['shortUrl']);
+                        $('#gottenShortUrlForm').show();
+                    }
+                    else if(result['status'] == 401) {
+						$('#shortUrlErrorLabel').show();
+						$('#shortUrlErrorLabel').hide(10000);
+						loggedOutView();
+
+					} else {
+                        $('#gottenShortUrlForm').hide();
+					}
+                });
             });
 
-        }
-
-        $(document).ready(function() {
-            $("form").submit(function(event) {
-                event.preventDefault();
-                submitAsJSON(this);
+            $(document).ready(function() {
+                $('#logout').click(function () {
+					loggedOutView();
+                });
             });
-        });
 
-    </script>
-</head>
-<body>
+            $(document).ready(function() {
+                $('#statistic').click(function (event) {
+                    event.preventDefault();
+                    var result;
+                    var statisticForm = document.createElement('form');
+                    statisticForm.setAttribute('action', '/statistic');
+                    statisticForm.setAttribute('method', 'POST');
+                    result = submitAsJSON(statisticForm);
+                    var data = JSON.parse(result["responseText"]);
+                    var tbl_body = "";
+                    $("#statisticTable tbody").html("");
+                    $.each(data, function () {
+                        var tbl_row = "";
+                        tbl_row += "<td>" + this['url'] + "</td>";
+                        tbl_row += "<td style='width:100px'>" + this['redirectCounter'] + "</td>";
+                        tbl_body += "<tr>"+tbl_row+"</tr>";
+                    });
+                    $("#statisticTable tbody").html(tbl_body);
+                });
+            });
 
-<h1>HTTP service that serves to shorten URLs</h1>
-<form action='test' method='post' id='form'>
-    <input name='accountId' value='Bender'>
-    <input type='submit'>
-</form>
+            $(document).ready(function() {
+                $('#signIn').submit(function(event) {
+                    event.preventDefault();
+                    var result;
+                    result = submitAsJSON(this);
+                    if( result['status'] == 405) {
+                        $('#signInErrorMessage').show();
+                        $('#signInErrorMessage').hide(10000);
+					} else if (result['responseJSON']['token'] !== "") {
+                        $('#loginDiv').hide();
+                        $('#logout').show();
+                        $('#statistic').show();
+					}
+                });
+            });
 
-</body>
+            $(document).ready(function() {
+                $('#signUp').submit(function(event) {
+                    event.preventDefault();
+                    var result;
+                    result = submitAsJSON(this);
+					if (result['status'] == 200) {
+					    if (result['responseJSON']['password'] !== "") {
+							$('#gottenPassword').show();
+							$('#gottenPassword').val(result['responseJSON']['password']);
+							showDisappearingMessage($('#signUpErrorMessage'), 'Save password and login', 0);
+							$('#signUpButton').hide();
+							$('#logInButton').show();
+						} else {
+					        //wrong login
+							showDisappearingMessage($('#signUpErrorMessage'), 'Choose another login', 10000);
+						}
+					} else {
+					    //server error
+                        showDisappearingMessage($('#signUpErrorMessage'), "Server doesn't response", 10000);
+					}
+                });
+            });
+
+            //log in button from sign in dialog. Appears after successful register new account
+            $(document).ready(function() {
+				$('#logInButton').click(function (event) {
+					event.preventDefault();
+					$('#logInButton').hide();
+					$('#userName').val($('#accountId').val());
+					$('#password').val($('#gottenPassword').val());
+					$('#signIn').submit();
+					$('#loginRegisterDiv').hide();
+                    $('#logout').show();
+                    $('#statistic').show();
+				});
+            });
+
+            $(document).ready(function() {
+                $('#registerButton').click(function(event) {
+                    event.preventDefault();
+                    $('#signUpButton').show();
+                    $('#loginDiv').hide();
+					$('#loginRegisterDiv').show();
+                    $('#signUpErrorMessage').hide();
+                    $('#gottenPassword').val("");
+                    $('#gottenPassword').hide();
+                    $('#accountId').val("");
+                });
+            });
+
+			function  showDisappearingMessage(id, message, time) {
+			    id.text(message);
+			    id.show();
+			    if (time > 0) {
+                    id.hide(time);
+                }
+			}
+
+            function loggedOutView() {
+                window.localStorage.setItem('token', '');
+                $('#loginDiv').show();
+                $('#logout').hide();
+                $('#statistic').hide();
+                $('#gottenShortUrlForm').hide();
+			}
+
+            $(document).ready(function() {
+                $('#copyToClipBoard').click(function(event) {
+                    event.preventDefault();
+                    var copyText = document.getElementById("gottenShortUrl");
+                    copyText.select();
+                    document.execCommand("copy");
+                    document.getElementById("url").focus();
+                });
+            });
+
+
+		</script>
+	</head>
+	<body class="is-preload">
+
+		<!-- Sidebar -->
+			<section id="sidebar" style="padding-top: 15px;">
+				<div class="image portrait">
+					<img src="images/my photo.jpg"/>
+				</div>
+				<div  id="loginDiv" style="display: none">
+					<form id="signIn" method="post" action="/authenticate" >
+						<div class="row gtr-uniform">
+							<div class="col-12" style="padding-top: 25px">
+								<input  type="text" name="username" id="userName" value="" placeholder="email or user name" style="padding-left: 4px; padding-right: 4px; height: 90%;"/>
+							</div>
+							<div class="col-12" style="padding-top: 5px">
+								<input type="password" name="password" id="password" value="" placeholder="password" style="padding-left: 4px; padding-right: 4px; height: 90%; " />
+							</div>
+							<div class="col-12" style="padding-top: 2px; font-size: 0.75em; text-align: center">
+								<label id="signInErrorMessage" style="color:crimson; display: none">Wrong login or password</label>
+							</div>
+
+							<div class="col-12" style="padding-top: 0px">
+								<ul class="actions fit">
+									<li><input type="submit" value="Log in" class="button small" /></li>
+									<li><input id="registerButton" type="reset" value="Register" class="button small"/></li>
+								</ul>
+							</div>
+						</div>
+					</form>
+				</div>
+
+				<div  id="loginRegisterDiv" style="display:none">
+					<form id="signUp" method="post" action="/account" >
+						<div class="row gtr-uniform">
+							<div class="col-12" style="padding-top: 25px">
+								<input  type="text" id="accountId" name="accountId" value="" placeholder="email or user name" style="padding-left: 4px; padding-right: 4px; height: 90%;"/>
+							</div>
+							<div class="col-12" style="padding-top: 5px">
+								<input type="text" id="gottenPassword" name="gottenPassword"  value="" placeholder="password" style="padding-left: 4px; padding-right: 4px; height: 90%; display: none" />
+							</div>
+							<div class="col-12" style="padding-top: 2px; font-size: 0.75em; text-align: center">
+								<label id="signUpErrorMessage" style="color:crimson; display: none">Choose another login</label>
+								<label id="savePasswordMessage" style="color:crimson; display: none">Save password before log in</label>
+							</div>
+
+							<div class="col-12" style="padding-top: 0px">
+								<ul class="actions fit">
+									<li><input type="submit" id="signUpButton" value="Sign Up" class="button small" /></li>
+									<li><input type="button" id="logInButton" value="Log in" class="button small" style="display: none"/></li>
+								</ul>
+							</div>
+						</div>
+					</form>
+				</div>
+
+				<div class="inner" style="line-height: 0px; ">
+					<nav>
+						<ul>
+							<li><a href="#intro">Welcome</a></li>
+							<li><a href="#one">Who am I</a></li>
+							<li><a href="#two">My skills</a></li>
+							<li><a href="#three">Get in touch</a></li>
+							<li id="statistic"><a style="color: greenyellow" href="#statisticSection">Statistics</a></li>
+							<li id="logout"><a style="color: greenyellow" href="">Log out</a></li>
+						</ul>
+					</nav>
+				</div>
+			</section>
+
+		<!-- Wrapper -->
+			<div id="wrapper">
+
+				<!-- Intro -->
+					<section id="intro" class="wrapper style1 fullscreen fade-up">
+						<div class="inner">
+
+							<h1>URL shortener & link analytics</h1>
+							<form id="shortUrlForm" method="post" action="/register">
+								<div class="col-12">
+									<ul class="actions fit">
+										<input type="url" name="url" id="url" value="" placeholder="Shorten your link" style="margin-right: 10px"/>
+										<input type="hidden" name="redirectType" value="302"/>
+										<input type="submit" value="Shorten" class="button primary" />
+									</ul>
+									<label id="shortUrlErrorLabel" style="color:crimson; display:none">Please log in</label>
+								</div>
+							</form>
+							<form id="gottenShortUrlForm" style="display:none">
+								<div class="col-12">
+									<ul class="actions fit">
+										<input type="url" name="url" id="gottenShortUrl" value="" placeholder="Gotten short url" style="margin-right: 10px"/>
+										<input type="button" value="Copy url" id="copyToClipBoard" class="button" />
+									</ul>
+								</div>
+							</form>
+
+							<p>Hi, my name is Gaifutdinov Ilshat. Creating this site i intended to show off my skills in developing <b>Java Applications with Spring Boot</b> and other technologies.
+							It's a really working url shortening service.</p>
+							<p>An URL Shortener is a technique in which an URL may be made substantially shorter in length and still direct to the required page.</p>
+							<p>An URL Shortener achieves this using a redirect on a domain name that is short. The short URL links to the web page that has a long URL.</p>
+							<p>To use this service you should sign in. It offers statistics for each short url.</p>
+							<ul class="actions">
+								<li><a href="#one" class="button scrolly">Learn more</a></li>
+							</ul>
+						</div>
+					</section>
+
+				<!-- One -->
+					<section id="one" class="wrapper style2 spotlights">
+						<section>
+							<a href="#" class="image"><img src="images/pic01.jpg" alt="" data-position="center center" /></a>
+							<div class="content">
+								<div class="inner">
+									<h2>Sed ipsum dolor</h2>
+									<p>Phasellus convallis elit id ullamcorper pulvinar. Duis aliquam turpis mauris, eu ultricies erat malesuada quis. Aliquam dapibus.</p>
+									<ul class="actions">
+										<li><a href="generic.html" class="button">Learn more</a></li>
+									</ul>
+								</div>
+							</div>
+						</section>
+						<section>
+							<a href="#" class="image"><img src="images/pic02.jpg" alt="" data-position="top center" /></a>
+							<div class="content">
+								<div class="inner">
+									<h2>Feugiat consequat</h2>
+									<p>Phasellus convallis elit id ullamcorper pulvinar. Duis aliquam turpis mauris, eu ultricies erat malesuada quis. Aliquam dapibus.</p>
+									<ul class="actions">
+										<li><a href="generic.html" class="button">Learn more</a></li>
+									</ul>
+								</div>
+							</div>
+						</section>
+						<section>
+							<a href="#" class="image"><img src="images/pic03.jpg" alt="" data-position="25% 25%" /></a>
+							<div class="content">
+								<div class="inner">
+									<h2>Ultricies aliquam</h2>
+									<p>Phasellus convallis elit id ullamcorper pulvinar. Duis aliquam turpis mauris, eu ultricies erat malesuada quis. Aliquam dapibus.</p>
+									<ul class="actions">
+										<li><a href="generic.html" class="button">Learn more</a></li>
+									</ul>
+								</div>
+							</div>
+						</section>
+					</section>
+
+				<!-- Two -->
+					<section id="two" class="wrapper style3 fade-up">
+						<div class="inner">
+							<h2>What we do</h2>
+							<p>Phasellus convallis elit id ullamcorper pulvinar. Duis aliquam turpis mauris, eu ultricies erat malesuada quis. Aliquam dapibus, lacus eget hendrerit bibendum, urna est aliquam sem, sit amet imperdiet est velit quis lorem.</p>
+							<div class="features">
+								<section>
+									<span class="icon solid major fa-code"></span>
+									<h3>Lorem ipsum amet</h3>
+									<p>Phasellus convallis elit id ullam corper amet et pulvinar. Duis aliquam turpis mauris, sed ultricies erat dapibus.</p>
+								</section>
+								<section>
+									<span class="icon solid major fa-lock"></span>
+									<h3>Aliquam sed nullam</h3>
+									<p>Phasellus convallis elit id ullam corper amet et pulvinar. Duis aliquam turpis mauris, sed ultricies erat dapibus.</p>
+								</section>
+								<section>
+									<span class="icon solid major fa-cog"></span>
+									<h3>Sed erat ullam corper</h3>
+									<p>Phasellus convallis elit id ullam corper amet et pulvinar. Duis aliquam turpis mauris, sed ultricies erat dapibus.</p>
+								</section>
+								<section>
+									<span class="icon solid major fa-desktop"></span>
+									<h3>Veroeros quis lorem</h3>
+									<p>Phasellus convallis elit id ullam corper amet et pulvinar. Duis aliquam turpis mauris, sed ultricies erat dapibus.</p>
+								</section>
+								<section>
+									<span class="icon solid major fa-link"></span>
+									<h3>Urna quis bibendum</h3>
+									<p>Phasellus convallis elit id ullam corper amet et pulvinar. Duis aliquam turpis mauris, sed ultricies erat dapibus.</p>
+								</section>
+								<section>
+									<span class="icon major fa-gem"></span>
+									<h3>Aliquam urna dapibus</h3>
+									<p>Phasellus convallis elit id ullam corper amet et pulvinar. Duis aliquam turpis mauris, sed ultricies erat dapibus.</p>
+								</section>
+							</div>
+							<ul class="actions">
+								<li><a href="generic.html" class="button">Learn more</a></li>
+							</ul>
+						</div>
+					</section>
+
+					<section id="statisticSection" class="wrapper style4 fade-up">
+						<div class="inner">
+							<h2>Redirect statistics</h2>
+							<div class="table-wrapper">
+								<table id="statisticTable" class="alt">
+									<thead>
+									<tr>
+										<th>Url</th>
+										<th>Redirects</th>
+									</tr>
+									</thead>
+									<tbody>
+									<tr>
+										<td>No data</td>
+										<td style="width:100px"> </td>
+									</tr>
+									</tbody>
+								</table>
+							</div>
+
+						</div>
+					</section>
+
+				<!-- Three -->
+					<section id="three" class="wrapper style1 fade-up">
+						<div class="inner">
+							<h2>Get in touch</h2>
+							<p>Phasellus convallis elit id ullamcorper pulvinar. Duis aliquam turpis mauris, eu ultricies erat malesuada quis. Aliquam dapibus, lacus eget hendrerit bibendum, urna est aliquam sem, sit amet imperdiet est velit quis lorem.</p>
+							<div class="split style1">
+								<section>
+									<form method="post" action="#">
+										<div class="fields">
+											<div class="field half">
+												<label for="name">Name</label>
+												<input type="text" name="name" id="name" />
+											</div>
+											<div class="field half">
+												<label for="email">Email</label>
+												<input type="text" name="email" id="email" />
+											</div>
+											<div class="field">
+												<label for="message">Message</label>
+												<textarea name="message" id="message" rows="5"></textarea>
+											</div>
+										</div>
+										<ul class="actions">
+											<li><a href="" class="button submit">Send Message</a></li>
+										</ul>
+									</form>
+								</section>
+								<section>
+									<ul class="contact">
+										<li>
+											<h3>Address</h3>
+											<span>Russia 461050<br />
+											Orenburg region<br />
+											Buzuluk town</span>
+										</li>
+										<li>
+											<h3>Email</h3>
+											<a href="#">ilshatrashidovich@rambler.ru</a>
+										</li>
+										<li>
+											<h3>Phone</h3>
+											<span>+7 905-84-48-307</span>
+										</li>
+										<li>
+											<h3>Social</h3>
+											<ul class="icons">
+												<li><a href="https://vk.com/udachliviy" target="_blank" class="icon brands fa-vk"><span class="label">VK</span></a></li>
+												<li><a href="https://www.facebook.com/profile.php?id=100028698573658" target="_blank" class="icon brands fa-facebook-f"><span class="label">Facebook</span></a></li>
+												<li><a href="https://github.com/ilshatG" target="_blank" class="icon brands fa-github"><span class="label">GitHub</span></a></li>
+												<li><a href="#" class="icon brands fa-instagram"><span class="label">Instagram</span></a></li>
+												<li><a href="#" class="icon brands fa-linkedin-in"><span class="label">LinkedIn</span></a></li>
+											</ul>
+										</li>
+									</ul>
+								</section>
+							</div>
+						</div>
+					</section>
+
+			</div>
+
+		<!-- Footer -->
+			<footer id="footer" class="wrapper style1-alt">
+				<div class="inner">
+					<ul class="menu">
+						<li>&copy; Untitled. All rights reserved.</li><li>Design: <a href="http://html5up.net">HTML5 UP</a></li>
+					</ul>
+				</div>
+			</footer>
+
+		<!-- Scripts -->
+			<script src="assets/js/jquery.min.js"></script>
+			<script src="assets/js/jquery.scrollex.min.js"></script>
+			<script src="assets/js/jquery.scrolly.min.js"></script>
+			<script src="assets/js/browser.min.js"></script>
+			<script src="assets/js/breakpoints.min.js"></script>
+			<script src="assets/js/util.js"></script>
+			<script src="assets/js/main.js"></script>
+
+			<script>
+				if (window.localStorage.getItem('token') === '') {
+					loggedOutView();
+				}
+			</script>
+	</body>
 </html>

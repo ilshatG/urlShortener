@@ -1,0 +1,151 @@
+<html>
+<head>
+    <title>HTTP service that serves to shorten URLs</title>
+    <link href="/bootstrap.min.css" rel="stylesheet">
+    <script src="/bootstrap.min.js"></script>
+    <script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+    <script>
+        //window.localStorage.setItem('token', '');
+
+        /* Function takes a jquery form
+        and converts it to a JSON dictionary */
+        function convertFormToJSON(form){
+        var array = $(form).serializeArray();
+        var json = {};
+
+        $.each(array, function() {
+        json[this.name] = this.value || '';
+        });
+
+        return json;
+        }
+
+        /* Adds a new form to the body of a page with the JSON data encoded into it */
+        function submitAsJSON(form) {
+            var JSONString = JSON.stringify(convertFormToJSON(form));
+            var authorization ='';
+            var result;
+            var leftToken = window.localStorage.getItem('token').substring(0, 6);
+            if (window.localStorage.getItem('token').substring(0, 6) === 'Bearer') {
+                authorization = {"Authorization": window.localStorage.getItem('token')};
+            }
+            $.ajax({
+                url: $(form).attr('action'),
+                type: "POST",
+                headers: authorization,
+                contentType: "application/json; charset=utf-8",
+                data: JSONString, //Stringified Json Object
+                async: false,    //Cross-domain requests and dataType: "jsonp" requests do not support synchronous operation
+                cache: false,    //This will force requested pages not to be cached by the browser
+                processData:false, //To avoid making query String instead of JSON
+                success: function(responseJsonObject){
+                    // Success Action
+                    alert(JSON.stringify(responseJsonObject));
+                    result = responseJsonObject;
+                    window.localStorage.setItem('response', responseJsonObject);
+                    if(typeof responseJsonObject['token'] !== "undefined") {
+                        window.localStorage.setItem('token', 'Bearer ' + responseJsonObject['token']);
+                    }
+                }
+            });
+            return result;
+        }
+
+        /*$(document).ready(function() {
+            $("form").submit(function(event) {
+                event.preventDefault();
+                submitAsJSON(this);
+            });
+        });*/
+
+        $(document).ready(function() {
+            $('#regAccount').submit(function(event) {
+                event.preventDefault();
+                var result;
+                result = submitAsJSON(this);
+                //alert("result is " + JSON.stringify(result));
+                if(result['password'] !== '') {
+                    $('#gottenPass').attr('value', result['password']);
+                    $('#gottenPass').attr('hidden', false);
+                    $('#passLabel').attr('hidden', false);
+                    $('#signIn').hide();
+
+                    $('#username').val($('#accountId').val());
+                    $('#pwd').val($('#gottenPass').val());
+
+                    submitAsJSON($('#authenticate'));
+                }
+                else {
+                    $('#wrongLoginDiv').show();
+                    $('#wrongLogin').attr('hidden', false);
+                    $('#wrongLoginDiv').hide(5000);
+                    //$('#wrongLoginDiv').hide().html(data).fadeIn('slow').delay(5000).hide(1);
+                }
+            });
+        });
+
+        $(document).ready(function() {
+            $('#shortUrlForm').submit(function(event) {
+                event.preventDefault();
+                var result;
+                result = submitAsJSON(this);
+                if (result['shortUrl'] !== "") {
+                    $('#shortUrlInput').val(result['shortUrl']);
+                    $('#shortUrl').show();
+                }
+        });
+        });
+
+
+    </script>
+</head>
+<body>
+
+    <h1>HTTP service that serves to shorten URLs</h1>
+    <form id='regAccount' action='account' method='post')>
+        Registration:<br>
+        Choose your login: <input id="accountId" name='accountId' value='Bender'>
+        <input type='submit'>
+    </form>
+    <div id='wrongLoginDiv'>
+        <label id='wrongLogin' style='color:red' hidden = 'true'>Choose another login</label>
+    </div>
+    <form>
+        <label id='passLabel' hidden = 'true'>Password </label><input type="text" id='gottenPass' value="123456" readonly="readonly" hidden='true'/>
+    </form>
+
+
+
+    <form id="shortUrlForm" action='register' method='post'>
+        Url to register: <input name='url' type='url'> <br>
+        Redirect type (301, 302): <input name='redirectType' type='number' value='302'>
+        <input type='submit'>
+    </form>
+    <div id="shortUrl" style="display: none"> <!-- style="visibility: hidden"> -->
+        <form>
+            <label>Short url: </label><input type="text" id='shortUrlInput' value="123456" readonly="readonly"/>
+        </form>
+    </div>
+
+
+    <div id="signIn">
+    <form id='authenticate' action="/authenticate" method="post">
+        <div class="form-group">
+            <label for="username">Login:</label> <input type="text" class="form-control" id="username" name="username">
+        </div>
+        <div class="form-group">
+            <label for="pwd">Password:</label> <input type="password"
+                                                      class="form-control" id="pwd" name="password">
+        </div>
+
+        <button type="submit" class="btn btn-success">Submit</button>
+
+        <!--<input type="hidden" name="${_csrf.parameterName}"
+               value="${_csrf.token}" />
+               -->
+    </form>
+    </div>
+
+</body>
+
+</html>
