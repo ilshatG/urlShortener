@@ -7,11 +7,10 @@ import org.springframework.context.annotation.Bean;
  * To shorten long decimals via converting to 62 base system. E.g decimal value 62 will be 'Z' and vise versa
  */
 public class DecimalLetterCoder {
-    static String symbols = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    char[] c = symbols.toCharArray();
-    int base = c.length;
+    private String symbols = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    private char[] c = symbols.toCharArray();
+    private int base = c.length;
 
-    @Autowired
     public DecimalLetterCoder() {
     }
 
@@ -44,7 +43,8 @@ public class DecimalLetterCoder {
      */
     public long strToDec(String str) {
         long result = 0;
-        str = str.trim();
+        str = new StringBuilder(str.trim()).reverse().toString();
+
         int symbolIndex = 0;
         if (str.length() > 0) {
             for(int i = 0; i < str.length(); i++) {

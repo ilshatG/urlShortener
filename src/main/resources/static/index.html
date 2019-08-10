@@ -6,25 +6,22 @@
 -->
 <html>
 	<head>
-		<title>Hyperspace by HTML5 UP</title>
+		<title>Url shortener</title>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
 		<link rel="stylesheet" href="assets/css/main.css" />
 		<noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
+		<link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
 		<script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
 		<script>
-            //window.localStorage.setItem('token', '');
-
             /* Function takes a jquery form
             and converts it to a JSON dictionary */
             function convertFormToJSON(form){
                 var array = $(form).serializeArray();
                 var json = {};
-
                 $.each(array, function() {
                     json[this.name] = this.value || '';
                 });
-
                 return json;
             }
 
@@ -48,9 +45,6 @@
                     processData:false, //To avoid making query String instead of JSON
                     success: function(responseJsonObject){
                         // Success Action
-                        /*alert(JSON.stringify(responseJsonObject));
-                        result = responseJsonObject;
-                        window.localStorage.setItem('response', responseJsonObject);*/
                         if(typeof responseJsonObject['token'] !== "undefined") {
                             window.localStorage.setItem('token', 'Bearer ' + responseJsonObject['token']);
                         }
@@ -60,7 +54,6 @@
                         //alert(JSON.stringify(responseJsonObject));
                         result = responseJsonObject;
                         window.localStorage.setItem('response', responseJsonObject);
-                            //window.localStorage.setItem('token', '');
                     }
                 });
                 return result;
@@ -110,6 +103,7 @@
                         tbl_body += "<tr>"+tbl_row+"</tr>";
                     });
                     $("#statisticTable tbody").html(tbl_body);
+                    $('#statisticSection').show();
                 });
             });
 
@@ -125,6 +119,7 @@
                         $('#loginDiv').hide();
                         $('#logout').show();
                         $('#statistic').show();
+                        $('#statistic').click();
 					}
                 });
             });
@@ -163,6 +158,8 @@
 					$('#loginRegisterDiv').hide();
                     $('#logout').show();
                     $('#statistic').show();
+                    $('#statistic').click();
+                    //$('#statisticSection').show();
 				});
             });
 
@@ -192,6 +189,7 @@
                 $('#loginDiv').show();
                 $('#logout').hide();
                 $('#statistic').hide();
+                $('#statisticSection').hide();
                 $('#gottenShortUrlForm').hide();
 			}
 
@@ -204,8 +202,6 @@
                     document.getElementById("url").focus();
                 });
             });
-
-
 		</script>
 	</head>
 	<body class="is-preload">
@@ -266,6 +262,7 @@
 					<nav>
 						<ul>
 							<li><a href="#intro">Welcome</a></li>
+							<li></li><a href="#null">How does it work</a></li>
 							<li><a href="#one">Who am I</a></li>
 							<li><a href="#two">My skills</a></li>
 							<li><a href="#three">Get in touch</a></li>
@@ -309,95 +306,110 @@
 							<p>An URL Shortener achieves this using a redirect on a domain name that is short. The short URL links to the web page that has a long URL.</p>
 							<p>To use this service you should sign in. It offers statistics for each short url.</p>
 							<ul class="actions">
-								<li><a href="#one" class="button scrolly">Learn more</a></li>
+								<li><a href="#null" class="button scrolly">Learn more</a></li>
 							</ul>
 						</div>
+					</section>
+
+					<section id="null" class="wrapper style3 fade-up">
+						<!-- <a href="#" class="image"><img src="images/pic03.jpg" alt="" data-position="25% 25%" /></a> -->
+
+							<div class="inner">
+								<h2>How does it work</h2>
+
+								<p>Due to assignment this application provides an HTTP service that serves to shorten URLs, with the following functionalities:</p>
+								<ul>
+									<li>Registration Web address (API);</li>
+									<li>Redirect client in accordance with the shortened URL;</li>
+									<li>Usage Statistics (API).</li>
+								</ul>
+								<p>The service has two parts: configuration and user.</p>
+								<h3>1.1. Configuration part</h3>
+								<p>The configuration part is invoked using REST calls with JSON payload and is used for:<br>
+									a) Opening of accounts;<br>
+									b) Registration of URLs in the 'Shortener' service;<br>
+									c) Displaying stats.
+								</p>
+								<h3>1.2. Redirecting</h3>
+								<P>Redirectes the client on the configured address with the configured http status.</P>
+								<ul class="actions">
+									<li><a href="https://github.com/ilshatG/urlShortener" class="button" target="_blank">Watch on Github</a></li>
+								</ul>
+							</div>
+
 					</section>
 
 				<!-- One -->
 					<section id="one" class="wrapper style2 spotlights">
 						<section>
-							<a href="#" class="image"><img src="images/pic01.jpg" alt="" data-position="center center" /></a>
+							<a href="#" class="image"><img src="images/education.png" alt="" data-position="center center" /></a>
 							<div class="content">
 								<div class="inner">
-									<h2>Sed ipsum dolor</h2>
-									<p>Phasellus convallis elit id ullamcorper pulvinar. Duis aliquam turpis mauris, eu ultricies erat malesuada quis. Aliquam dapibus.</p>
-									<ul class="actions">
-										<li><a href="generic.html" class="button">Learn more</a></li>
-									</ul>
+									<h2>Education</h2>
+									<p>I <b>graduated with honors</b> from <a href="http://en.gubkin.ru/">Gubkin Russian state University of Oil and Gas</a> with a degree in engineering for oil and gas field development. </p>
 								</div>
 							</div>
 						</section>
 						<section>
-							<a href="#" class="image"><img src="images/pic02.jpg" alt="" data-position="top center" /></a>
+							<a href="#" class="image"><img src="images/java-developer.png" alt="" data-position="top center" /></a>
 							<div class="content">
 								<div class="inner">
-									<h2>Feugiat consequat</h2>
-									<p>Phasellus convallis elit id ullamcorper pulvinar. Duis aliquam turpis mauris, eu ultricies erat malesuada quis. Aliquam dapibus.</p>
-									<ul class="actions">
-										<li><a href="generic.html" class="button">Learn more</a></li>
+									<h2>Experience</h2>
+									<p>On September 2017 I joined the educational Java project <a href="https://job4j.ru/">job4j.ru</a>.</p>
+									<ul>
+										<li>Created car selling web application where the customers can buy and sell their
+											cars.</li>
+										<li>Developed url shortener web application that you can see on this web site.</li>
 									</ul>
+
+									<p>I have been working in Rosneft since 2005 as an engineer analyst.</p>
 								</div>
 							</div>
 						</section>
-						<section>
-							<a href="#" class="image"><img src="images/pic03.jpg" alt="" data-position="25% 25%" /></a>
-							<div class="content">
-								<div class="inner">
-									<h2>Ultricies aliquam</h2>
-									<p>Phasellus convallis elit id ullamcorper pulvinar. Duis aliquam turpis mauris, eu ultricies erat malesuada quis. Aliquam dapibus.</p>
-									<ul class="actions">
-										<li><a href="generic.html" class="button">Learn more</a></li>
-									</ul>
-								</div>
-							</div>
-						</section>
+
 					</section>
 
 				<!-- Two -->
 					<section id="two" class="wrapper style3 fade-up">
 						<div class="inner">
-							<h2>What we do</h2>
-							<p>Phasellus convallis elit id ullamcorper pulvinar. Duis aliquam turpis mauris, eu ultricies erat malesuada quis. Aliquam dapibus, lacus eget hendrerit bibendum, urna est aliquam sem, sit amet imperdiet est velit quis lorem.</p>
+							<h2>My basic skills</h2>
+							<!-- <p>Phasellus convallis elit id ullamcorper pulvinar. Duis aliquam turpis mauris, eu ultricies erat malesuada quis. Aliquam dapibus, lacus eget hendrerit bibendum, urna est aliquam sem, sit amet imperdiet est velit quis lorem.</p> -->
 							<div class="features">
 								<section>
-									<span class="icon solid major fa-code"></span>
-									<h3>Lorem ipsum amet</h3>
-									<p>Phasellus convallis elit id ullam corper amet et pulvinar. Duis aliquam turpis mauris, sed ultricies erat dapibus.</p>
-								</section>
-								<section>
-									<span class="icon solid major fa-lock"></span>
-									<h3>Aliquam sed nullam</h3>
-									<p>Phasellus convallis elit id ullam corper amet et pulvinar. Duis aliquam turpis mauris, sed ultricies erat dapibus.</p>
-								</section>
-								<section>
-									<span class="icon solid major fa-cog"></span>
-									<h3>Sed erat ullam corper</h3>
-									<p>Phasellus convallis elit id ullam corper amet et pulvinar. Duis aliquam turpis mauris, sed ultricies erat dapibus.</p>
-								</section>
-								<section>
-									<span class="icon solid major fa-desktop"></span>
-									<h3>Veroeros quis lorem</h3>
-									<p>Phasellus convallis elit id ullam corper amet et pulvinar. Duis aliquam turpis mauris, sed ultricies erat dapibus.</p>
+									<span class="icon solid major fa-gem"></span>
+									<h3>Core Java 8</h3>
+									<p>Colections, Stream API, etc.</p>
 								</section>
 								<section>
 									<span class="icon solid major fa-link"></span>
-									<h3>Urna quis bibendum</h3>
-									<p>Phasellus convallis elit id ullam corper amet et pulvinar. Duis aliquam turpis mauris, sed ultricies erat dapibus.</p>
+									<h3>SQL</h3>
+									<p>PostgreSQL, H2, etc.</p>
 								</section>
 								<section>
-									<span class="icon major fa-gem"></span>
-									<h3>Aliquam urna dapibus</h3>
-									<p>Phasellus convallis elit id ullam corper amet et pulvinar. Duis aliquam turpis mauris, sed ultricies erat dapibus.</p>
+									<span class="icon solid major fa-cog"></span>
+									<h3>Servlet & JSP</h3>
+									<p>Created web applications using Servlet API and Java Server pages.</p>
+								</section>
+								<section>
+									<span class="icon solid major fa-desktop"></span>
+									<h3>Hibernate ORM</h3>
+									<p>To access data in database tables via ORM in my projects i've been using this framework.</p>
+								</section>
+								<section>
+									<span class="icon solid major fa-lock"></span>
+									<h3>Spring framework</h3>
+									<p>Spring(core, MVC, Data, Security, Boot). This project, as mentioned above, created using Spring Boot, Spring Data, Spring security.</p>
+								</section>
+								<section>
+									<span class="icon solid major fa-code"></span>
+									<h3>HTML, CSS, JS, AJAX & JQuery</h3>
+									<p>Creating presentation layer of this web application i've used HTML, CSS, JS, AJAX & JQuery.</p>
 								</section>
 							</div>
-							<ul class="actions">
-								<li><a href="generic.html" class="button">Learn more</a></li>
-							</ul>
 						</div>
 					</section>
 
-					<section id="statisticSection" class="wrapper style4 fade-up">
+					<section id="statisticSection" class="wrapper style4 fade-up" style="display: none">
 						<div class="inner">
 							<h2>Redirect statistics</h2>
 							<div class="table-wrapper">
@@ -424,26 +436,26 @@
 					<section id="three" class="wrapper style1 fade-up">
 						<div class="inner">
 							<h2>Get in touch</h2>
-							<p>Phasellus convallis elit id ullamcorper pulvinar. Duis aliquam turpis mauris, eu ultricies erat malesuada quis. Aliquam dapibus, lacus eget hendrerit bibendum, urna est aliquam sem, sit amet imperdiet est velit quis lorem.</p>
+							<p>Please contact me.</p>
 							<div class="split style1">
 								<section>
-									<form method="post" action="#">
+									<form method="get" action="#intro">
 										<div class="fields">
 											<div class="field half">
 												<label for="name">Name</label>
-												<input type="text" name="name" id="name" />
+												<input type="text" name="name" id="name" readonly/>
 											</div>
 											<div class="field half">
 												<label for="email">Email</label>
-												<input type="text" name="email" id="email" />
+												<input type="text" name="email" id="email" readonly/>
 											</div>
 											<div class="field">
 												<label for="message">Message</label>
-												<textarea name="message" id="message" rows="5"></textarea>
+												<textarea name="message" id="message" rows="5" readonly></textarea>
 											</div>
 										</div>
 										<ul class="actions">
-											<li><a href="" class="button submit">Send Message</a></li>
+											<li><a href="#intro" class="button submit">Send Message</a></li>
 										</ul>
 									</form>
 								</section>
@@ -469,7 +481,6 @@
 												<li><a href="https://vk.com/udachliviy" target="_blank" class="icon brands fa-vk"><span class="label">VK</span></a></li>
 												<li><a href="https://www.facebook.com/profile.php?id=100028698573658" target="_blank" class="icon brands fa-facebook-f"><span class="label">Facebook</span></a></li>
 												<li><a href="https://github.com/ilshatG" target="_blank" class="icon brands fa-github"><span class="label">GitHub</span></a></li>
-												<li><a href="#" class="icon brands fa-instagram"><span class="label">Instagram</span></a></li>
 												<li><a href="#" class="icon brands fa-linkedin-in"><span class="label">LinkedIn</span></a></li>
 											</ul>
 										</li>
@@ -485,7 +496,7 @@
 			<footer id="footer" class="wrapper style1-alt">
 				<div class="inner">
 					<ul class="menu">
-						<li>&copy; Untitled. All rights reserved.</li><li>Design: <a href="http://html5up.net">HTML5 UP</a></li>
+						<li>&copy; Gaifutdinov Ilshat.</li><li>Java Developer</a></li>
 					</ul>
 				</div>
 			</footer>

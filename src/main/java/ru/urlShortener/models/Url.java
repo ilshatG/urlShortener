@@ -24,6 +24,10 @@ public class Url {
     public Url() {
     }
 
+    public void inc() {
+        redirectCounter++;
+    }
+
     public Url(Url url) {
         this.id = url.getId();
         this.url = url.getUrl();

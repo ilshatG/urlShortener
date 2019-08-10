@@ -1,18 +1,10 @@
 package ru.urlShortener;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.web.servlet.error.ErrorController;
-import org.springframework.core.io.InputStreamResource;
-import org.springframework.core.io.Resource;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.ModelAndView;
 import ru.urlShortener.models.*;
 import ru.urlShortener.repository.UrlRepository;
 import ru.urlShortener.repository.UrlsOwnersRepository;
@@ -21,11 +13,13 @@ import ru.urlShortener.service.DecimalLetterCoder;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import ru.urlShortener.service.LocalTools;
 
 @RestController
 @RequestMapping
@@ -39,7 +33,7 @@ public class MainRestController {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
-
+    private static final Logger logger = LoggerFactory.getLogger(GetAndRedirectController.class);
     private DecimalLetterCoder decimalLetterCoder = new DecimalLetterCoder();
 
     @RequestMapping(value="/account", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -69,34 +63,29 @@ public class MainRestController {
     public @ResponseBody UrlRegisterResponse
     registerUrlResponse(HttpServletRequest request, HttpServletResponse response, Principal principal,
                         @RequestBody UrlRegisterRequest urlRegisterRequest) {
-        UrlUser urlUser = new UrlUser();
+        UrlUser urlUser;
         UrlRegisterResponse urlRegisterResponse = new UrlRegisterResponse();
         if (principal != null ) {
             if (urlRegisterRequest.getUrl() != null && !urlRegisterRequest.getUrl().trim().equals("")) {
                 urlUser = userRepository.findByLogin(principal.getName());
                 Url url = new Url(urlRegisterRequest.getUrl().trim(),
                 urlRegisterRequest.getRedirectType() != 301 ? 302 : 301);
-                UrlsOwners urlsOwners = new UrlsOwners();
                 try {
                     urlRepository.save(url);
                 } catch (DataIntegrityViolationException e) {
                     url = urlRepository.findByUrlAndRedirectType(url.getUrl(), url.getRedirectType());
                 }
                 try {
-                    urlsOwners = urlsOwnersRepository.save(new UrlsOwners(urlUser, url));
+                    urlsOwnersRepository.save(new UrlsOwners(urlUser, url));
                 } catch (DataIntegrityViolationException e) {
-                    urlsOwners = urlsOwnersRepository.findByUrl_IdAndUser_Id(url.getId(), urlUser.getId());
+                    //if such url exists on this user database won't add this url and throws exception. That's why this block is empty.
+                    // Because that what i want.
                 }
                 urlRegisterResponse.setSuccess(true);
-
-                //get own domain
-                String selfUrl = "";
-                if (request.getServerName().endsWith("localhost")) {
-                    selfUrl = String.format("%s://%s:%d/", request.getScheme(), request.getServerName(), request.getServerPort());
-                } else {
-                    selfUrl = String.format("%s://%s/", request.getScheme(), request.getServerName());
-                }
-
+                String selfUrl = (new LocalTools()).getSelfDomain(request);
+                //logger.warn("Main rest controller. Url id " + url.getId());
+                //logger.warn("Main rest controller. Coded id " + decimalLetterCoder.decToStr(url.getId()));
+                //logger.warn("Main rest controller. UnCoded id " + decimalLetterCoder.strToDec( decimalLetterCoder.decToStr(url.getId()) ));
                 urlRegisterResponse.setShortUrl(selfUrl + decimalLetterCoder.decToStr(url.getId()));
             } else {
                 urlRegisterResponse.setSuccess(false);
