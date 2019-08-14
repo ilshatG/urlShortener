@@ -1,4 +1,4 @@
-package ru.urlShortener;
+package ru.urlShortener.Controllers;
 
 import java.util.Objects;
 import org.springframework.beans.factory.annotation.Autowired;
