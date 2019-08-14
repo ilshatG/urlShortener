@@ -38,25 +38,34 @@ public class MainRestController {
 
     @RequestMapping(value="/account", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public @ResponseBody AccountResponse registerAccount(@RequestBody AccountRequest accountRequest) {
-        AccountResponse accountResponse = new AccountResponse();
+        AccountResponse accountResponse;
         if(accountRequest == null || accountRequest.getAccountId().trim().equals("") ||
             userRepository.findByLogin(accountRequest.getAccountId()) != null) {
-            accountResponse.setSuccess(false);
-            accountResponse.setDescription("Account is already exist or wrong account");
-            accountResponse.setPassword("");
+            accountResponse = accRegistrationFail();
         } else {
             String password = new Random().ints(8, 33, 122).collect(StringBuilder::new,
                     StringBuilder::appendCodePoint, StringBuilder::append)
                     .toString();
-            accountResponse.setSuccess(true);
-            accountResponse.setDescription("Your account is opened");
-            accountResponse.setPassword(password);
+
             UrlUser urlUser = new UrlUser();
             urlUser.setLogin(accountRequest.getAccountId());
             urlUser.setPassword(passwordEncoder.encode(password));
-            userRepository.save(urlUser);
+            try {
+                userRepository.save(urlUser);
+                accountResponse = accRegistationSuccess(password);
+            } catch (DataIntegrityViolationException e) {
+                accountResponse = accRegistrationFail();
+            }
         }
         return accountResponse;
+    }
+
+    private AccountResponse accRegistrationFail() {
+        return new AccountResponse(false, "Account is already exist or wrong account", "");
+    }
+
+    private AccountResponse accRegistationSuccess(String password) {
+        return new AccountResponse(true, "Your account is opened", password);
     }
 
     @RequestMapping(value = "/register", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
