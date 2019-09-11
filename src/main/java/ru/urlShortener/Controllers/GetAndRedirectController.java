@@ -36,7 +36,7 @@ public class GetAndRedirectController implements ErrorController {
 
     @RequestMapping(value = "/{shortUrl:.+}", method = RequestMethod.GET, produces = "html/text")
     public void redirect(HttpServletRequest request, HttpServletResponse response, @PathVariable String shortUrl) throws Exception {
-
+        logger.warn("Enter get controller of URL Shorterer...");
         response.setStatus(HttpServletResponse.SC_OK);
         response.setContentType("text/html;charset=UTF-8");
         if (shortUrl.equals("index.html")) {
