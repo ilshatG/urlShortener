@@ -57,6 +57,7 @@ public class GetAndRedirectController implements ErrorController {
                     return;
                 }
             }
+            logger.warn("Redirect to self");
             sendRedirect(response, (new LocalTools()).getSelfDomain(request), 301);
         }
         return;
