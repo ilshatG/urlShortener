@@ -40,9 +40,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .requiresSecure();*/
 
         http
-                .requiresChannel().anyRequest().requiresSecure()
+                //.requiresChannel().anyRequest().requiresSecure()
 
-                .and()
+                //.and()
                 .authorizeRequests()
                 .antMatchers("/**").permitAll()
                 .antMatchers("/h2-console/**").permitAll()//allow h2 console access to admins only
