@@ -43,7 +43,20 @@ public class GetAndRedirectController implements ErrorController {
         response.setStatus(HttpServletResponse.SC_OK);
         response.setContentType("text/html;charset=UTF-8");
         if (shortUrl.equals("index.html") || shortUrl.equals("error")) {
-            response.getOutputStream().println("Hello world");
+            //response.getOutputStream().println("Hello world");
+
+
+            InputStream in = getClass().getResourceAsStream("/static/index.html");
+            BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+
+            String line = null;
+            StringBuilder stringBuilder = new StringBuilder();
+            while((line = reader.readLine()) !=null ) {
+                stringBuilder.append(line).append("\n");
+            }
+            response.getOutputStream().print(stringBuilder.toString());
+            //logger.warn("reader " + reader.readLine());
+
             //response.getOutputStream().write(Files.readAllBytes(Paths.get(resourceFile.getURI())));
             response.getOutputStream().close();
         } else {
