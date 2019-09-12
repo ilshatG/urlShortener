@@ -34,13 +34,15 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http
-                .requiresChannel().anyRequest().requiresSecure();
+
                 /*.requiresChannel()
                 .requestMatchers(r -> r.getHeader("X-Forwarded-Proto") != null)
                 .requiresSecure();*/
 
         http
+                .requiresChannel().anyRequest().requiresSecure()
+
+                .and()
                 .authorizeRequests()
                 .antMatchers("/**").permitAll()
                 .antMatchers("/h2-console/**").permitAll()//allow h2 console access to admins only
