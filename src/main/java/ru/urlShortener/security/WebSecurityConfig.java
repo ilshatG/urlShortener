@@ -35,10 +35,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
-                //.requiresChannel().anyRequest().requiresSecure();
-                .requiresChannel()
+                .requiresChannel().anyRequest().requiresSecure();
+                /*.requiresChannel()
                 .requestMatchers(r -> r.getHeader("X-Forwarded-Proto") != null)
-                .requiresSecure();
+                .requiresSecure();*/
 
         http
                 .authorizeRequests()
