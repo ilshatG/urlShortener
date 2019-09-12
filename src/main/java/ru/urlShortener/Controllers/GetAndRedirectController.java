@@ -39,7 +39,7 @@ public class GetAndRedirectController implements ErrorController {
         logger.warn("Enter get controller of URL Shortener... " + shortUrl);
         response.setStatus(HttpServletResponse.SC_OK);
         response.setContentType("text/html;charset=UTF-8");
-        if (shortUrl.equals("index.html")) {
+        if (shortUrl.equals("index.html") || shortUrl.equals("error")) {
             response.getOutputStream().write(Files.readAllBytes(Paths.get(resourceFile.getURI())));
             response.getOutputStream().close();
         } else {
