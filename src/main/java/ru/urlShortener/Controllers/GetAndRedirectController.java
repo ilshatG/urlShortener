@@ -17,8 +17,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,11 +40,10 @@ public class GetAndRedirectController implements ErrorController {
         logger.warn("Enter get controller of URL Shortener... " + shortUrl);
         response.setStatus(HttpServletResponse.SC_OK);
         response.setContentType("text/html;charset=UTF-8");
-        if (shortUrl.equals("index.html") || shortUrl.equals("error")) {
+        if (shortUrl.equals("index.html") || shortUrl.equals("robots.txt")) {
             //response.getOutputStream().println("Hello world");
 
-
-            InputStream in = getClass().getResourceAsStream("/static/index.html");
+            InputStream in = getClass().getResourceAsStream("/static/" + shortUrl);
             BufferedReader reader = new BufferedReader(new InputStreamReader(in));
 
             String line = null;
